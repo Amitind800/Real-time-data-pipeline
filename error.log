@@ -1,0 +1,41 @@
+# ERROR LOG – Real-Time Data Pipeline (Kafka → Spark → Postgres)
+
+1. Spark Kerberos Error:
+   Exception in thread "main" org.apache.hadoop.security.KerberosAuthException: 
+   javax.security.auth.login.LoginException: java.lang.NullPointerException: invalid null input: name
+
+   - Cause: Spark tried to use Kerberos auth by default.
+   - Fix: Run Spark with configs:
+       --conf spark.hadoop.security.authentication=none
+       --conf spark.hadoop.security.authorization=false
+       --conf spark.kafka.security.protocol=PLAINTEXT
+
+2. Missing spark_streaming.py
+   python3: can't open file '/opt/bitnami/spark/apps/spark_streaming.py': [Errno 2]
+   - Fix: Mounted local ./apps folder into Spark containers with docker-compose.
+
+3. Kafka Topic Not Found
+   org.apache.kafka.common.errors.UnknownTopicOrPartitionException
+   - Cause: Wrong bootstrap-server in commands (localhost:9092 inside container).
+   - Fix: Use `kafka:29092` inside containers, `localhost:9092` from host.
+
+4. Docker Compose Version Warning
+   "the attribute `version` is obsolete"
+   - Cause: docker-compose v2 ignores `version:`.
+   - Fix: Removed `version:` line, everything worked.
+
+5. PSQL Command Error
+   name : The term 'name' is not recognized...
+   - Cause: Missing quotes around SQL command in PowerShell.
+   - Fix: Run with:
+       docker exec -it postgres psql -U airflow -d pipeline -c "CREATE TABLE ...;"
+
+6. Producer.py Bug
+   NameError: name 'event' is not defined
+   - Cause: Variable mismatch (`event` vs `message`).
+   - Fix: Changed `producer.send("user-topic", value=message)` and `print("Sent:", message)`.
+
+7. Duplicate Names in DB
+   - Cause: Producer was using `random.choice` / `names` library, so same names repeat.
+   - Fix: Use Faker for more diversity or handle deduplication in Spark.
+

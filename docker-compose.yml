@@ -16,6 +16,7 @@ services:
     ports:
       - "9092:9092"
     environment:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
@@ -24,6 +25,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
+    volumes:
+      - kafka_data:/var/lib/kafka/data
 
   spark-master:
     image: bitnami/spark:3.5.0
@@ -53,16 +56,17 @@ services:
     volumes:
       - ./apps:/opt/bitnami/spark/apps
   postgres:
-    image: postgres:14
+    image: postgres:15
     container_name: postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: realtime_db
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: pipeline_db
     ports:
-      - "5432:5432"
+    - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+    - postgres_data:/var/lib/postgresql/data
 
 volumes:
+  kafka_data:
   postgres_data:

@@ -25,9 +25,25 @@ json_df = df.selectExpr("CAST(value AS STRING)") \
     .select(from_json(col("value"), schema).alias("data")) \
     .select("data.*")
 
+jdbc_url = "jdbc:postgresql://postgres:5432/pipeline_db"
+db_props = {
+    "user": "airflow",
+    "password": "airflow",
+    "driver": "org.postgresql.Driver"
+}
+
 query = json_df.writeStream \
     .outputMode("append") \
-    .format("console") \
-    .start()
+    .foreachBatch(lambda batch_df, batch_id:
+        batch_df.write
+            .format("jdbc")
+            .option("url", "jdbc:postgresql://postgres:5432/pipeline_db")
+            .option("dbtable", "users")
+            .option("user", "airflow")
+            .option("password", "airflow")
+            .option("driver", "org.postgresql.Driver")
+            .mode("append")
+            .save()
+    ).start()
 
 query.awaitTermination()

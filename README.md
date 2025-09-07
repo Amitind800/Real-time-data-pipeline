@@ -1,93 +1,89 @@
-Real-time data pipeline
+# Real-Time Data Pipeline (Kafka → Spark → Postgres)
 
-Downloaded docker desktop
+## Overview
+This project demonstrates a real-time data pipeline using:
+- **Kafka** for event streaming
+- **Spark Structured Streaming** for processing
+- **Postgres** for storage
 
-Download docker desktop from official site ,benefit of using docker desktop it now comes with inbuilt linux feature as WSL(windows subsystem for linux) this will get installed along with the installation of docker
+Producer (Python) → Kafka → Spark → Postgres → (Future: Airflow & Grafana)
 
-Tweek some setting so that WSL is recognized by VM’s
+---
 
-Download Ubuntu to run the docker command
+## Setup
 
-Setting kafka on docker
+### 1. Clone & Navigate
+```bash
+git clone <repo>
+cd Real-Time-Data-Pipeline
 
-To setup kafka on docker we will create a docker-compose.yml file
+### Start services
 
-Once yml file is configured depending on what version we want yml will vary; if we are using kafka with zookeeper which is the version below 7.0.1
+docker-compose up -d
 
-Configure yml like this
+Services:
 
-version: '3.8'
+Zookeeper: localhost:2181
 
+Kafka: localhost:9092 (external), kafka:29092 (internal)
 
-services:
+Spark Master: localhost:8080
 
-zookeeper:
+Postgres: localhost:5432 (user: airflow, pass: airflow, db: pipeline)
 
-image: confluentinc/cp-zookeeper:7.0.1
+###Kafka
 
-container_name: zookeeper
+Create topic
+docker exec -it kafka kafka-topics \
+  --create --topic user-topic \
+  --partitions 1 --replication-factor 1 \
+  --bootstrap-server kafka:29092
 
-ports:
+##list topics
+docker exec -it kafka kafka-topics \
+  --list --bootstrap-server kafka:29092
 
-- "2181:2181"
+#Producer(python)
+pip install kafka-python faker names
 
-environment:
+#run producer
+python producer.py
 
-ZOOKEEPER_CLIENT_PORT: 2181
-
-ZOOKEEPER_TICK_TIME: 2000
-
-
-kafka:
-
-image: confluentinc/cp-kafka:7.0.1
-
-container_name: kafka
-
-ports:
-
-- "9092:9092"
-
-environment:
-
-KAFKA_BROKER_ID: 1
-
-KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-
-KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-
-KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-
-KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-depends_on:
-
-- zookeeper
+##sample output
+Sent: {'name': 'Amit', 'email': 'user24@example.com', 'timestamp': 1757266727.5482824}
 
 
-If using kraft configure doker-compose.yml like this
-
-environment:
-
-KAFKA_PROCESS_ROLES: broker,controller
-
-KAFKA_NODE_ID: 1
-
-KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-
-KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://localhost:9092
-
-KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-
-KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-
-KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+##Spark streaming
+submit job
+docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.5.1 \
+  /opt/bitnami/spark/apps/spark_streaming.py
 
 
-docker compose down -v to stop the process running
+##postgres 
+enter postgres container
 
-docker compose up -d to start the process
+docker exec -it postgres psql -U airflow -d pipeline
 
-check running container – docker ps
+create table:
+CREATE TABLE users (
+  name TEXT,
+  email TEXT,
+  timestamp DOUBLE PRECISION
+);
+
+check inserted data:
+docker exec -it postgres psql -U airflow -d pipeline -c "SELECT * FROM users;"
+
+
+#Common Issues
+
+KerberosAuthException → add Spark configs for PLAINTEXT
+UnknownTopicOrPartitionException → ensure topic exists, use correct bootstrap-server
+PSQL command errors in PowerShell → wrap SQL in quotes "..."
+
+#Next Steps
+
+Add deduplication in Spark
+Orchestrate pipeline with Airflow
+Visualize data with Grafana/Redash
