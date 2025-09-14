@@ -1,0 +1,23 @@
+[2025-09-10T05:58:35.853+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: realtime_pipeline.spark_job manual__2025-09-10T05:58:29.761638+00:00 [queued]>
+[2025-09-10T05:58:35.867+0000] {taskinstance.py:1159} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: realtime_pipeline.spark_job manual__2025-09-10T05:58:29.761638+00:00 [queued]>
+[2025-09-10T05:58:35.868+0000] {taskinstance.py:1361} INFO - Starting attempt 1 of 1
+[2025-09-10T05:58:35.890+0000] {taskinstance.py:1382} INFO - Executing <Task(BashOperator): spark_job> on 2025-09-10 05:58:29.761638+00:00
+[2025-09-10T05:58:35.907+0000] {standard_task_runner.py:57} INFO - Started process 585 to run task
+[2025-09-10T05:58:35.908+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'realtime_pipeline', 'spark_job', 'manual__2025-09-10T05:58:29.761638+00:00', '--job-id', '7', '--raw', '--subdir', 'DAGS_FOLDER/realtime_pipeline.py', '--cfg-path', '/tmp/tmpcc5vslnb']
+[2025-09-10T05:58:35.913+0000] {standard_task_runner.py:85} INFO - Job 7: Subtask spark_job
+[2025-09-10T05:58:36.002+0000] {task_command.py:416} INFO - Running <TaskInstance: realtime_pipeline.spark_job manual__2025-09-10T05:58:29.761638+00:00 [running]> on host 2e60c95814dd
+[2025-09-10T05:58:36.109+0000] {taskinstance.py:1662} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='realtime_pipeline' AIRFLOW_CTX_TASK_ID='spark_job' AIRFLOW_CTX_EXECUTION_DATE='2025-09-10T05:58:29.761638+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-09-10T05:58:29.761638+00:00'
+[2025-09-10T05:58:36.113+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2025-09-10T05:58:36.117+0000] {subprocess.py:75} INFO - Running command: ['/bin/bash', '-c', '/opt/bitnami/spark/bin/spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.5.1 /opt/bitnami/spark/apps/spark_streaming.py']
+[2025-09-10T05:58:36.133+0000] {subprocess.py:86} INFO - Output:
+[2025-09-10T05:58:36.170+0000] {subprocess.py:93} INFO - /bin/bash: line 1: /opt/bitnami/spark/bin/spark-submit: No such file or directory
+[2025-09-10T05:58:36.172+0000] {subprocess.py:97} INFO - Command exited with return code 127
+[2025-09-10T05:58:36.188+0000] {taskinstance.py:1937} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/bash.py", line 210, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 127.
+[2025-09-10T05:58:36.201+0000] {taskinstance.py:1400} INFO - Marking task as FAILED. dag_id=realtime_pipeline, task_id=spark_job, execution_date=20250910T055829, start_date=20250910T055835, end_date=20250910T055836
+[2025-09-10T05:58:36.222+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 7 for task spark_job (Bash command failed. The command returned a non-zero exit code 127.; 585)
+[2025-09-10T05:58:36.247+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2025-09-10T05:58:36.277+0000] {taskinstance.py:2778} INFO - 0 downstream tasks scheduled from follow-on schedule check
